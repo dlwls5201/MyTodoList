@@ -1,9 +1,12 @@
 package com.tistory.blackjin.mytodolist.ui
 
+import android.content.Context
 import android.os.Bundle
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.tistory.blackjin.mytodolist.R
 import com.tistory.blackjin.mytodolist.adapter.TodoAdapter
 import com.tistory.blackjin.mytodolist.extensions.runOnIoScheduler
 import com.tistory.blackjin.mytodolist.operator.plusAssign
@@ -15,6 +18,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
+import org.jetbrains.anko.toast
 import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity(), TodoAdapter.ItemClickListener {
@@ -58,10 +62,20 @@ class MainActivity : AppCompatActivity(), TodoAdapter.ItemClickListener {
     private fun initButton() {
 
         fabActivityMain.setOnClickListener {
-            runOnIoScheduler {
-                todoDao.insert(
-                    Todo(title = "BlackJIn", time = timeFormat(), chk = false)
-                )
+
+            val title = etActivityMain.text.toString()
+
+            if (title.isEmpty()) {
+                toast(getString(R.string.empty_title))
+            } else {
+                runOnIoScheduler {
+                    todoDao.insert(
+                        Todo(title = title, time = timeFormat(), chk = false)
+                    )
+                }
+
+                etActivityMain.text = null
+                hideKeyboard()
             }
         }
 
@@ -81,7 +95,7 @@ class MainActivity : AppCompatActivity(), TodoAdapter.ItemClickListener {
         showProgress()
 
         compositeDisposable += todoDao.getAllTodo()
-            .delay(3000, TimeUnit.MILLISECONDS)
+            //.delay(3000, TimeUnit.MILLISECONDS)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
@@ -101,6 +115,11 @@ class MainActivity : AppCompatActivity(), TodoAdapter.ItemClickListener {
             }) {
                 Dlog.e(it.message)
             }
+    }
+
+    private fun hideKeyboard() {
+        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(etActivityMain.windowToken, 0)
     }
 
     private fun showEmptyMessage() {

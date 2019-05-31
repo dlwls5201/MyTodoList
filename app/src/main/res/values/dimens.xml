@@ -1,4 +1,6 @@
 <resources>
+    <dimen name="edit_text_padding">10dp</dimen>
+
     <dimen name="fab_margin">16dp</dimen>
 
     <dimen name="item_todo_height">60dp</dimen>

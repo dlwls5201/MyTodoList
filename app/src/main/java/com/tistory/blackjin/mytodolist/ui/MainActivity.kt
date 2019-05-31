@@ -1,7 +1,9 @@
 package com.tistory.blackjin.mytodolist.ui
 
+import android.content.Context
 import android.os.Bundle
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.tistory.blackjin.mytodolist.R
@@ -17,7 +19,6 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.toast
-import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity(), TodoAdapter.ItemClickListener {
 
@@ -71,6 +72,9 @@ class MainActivity : AppCompatActivity(), TodoAdapter.ItemClickListener {
                         Todo(title = title, time = timeFormat(), chk = false)
                     )
                 }
+
+                etActivityMain.text = null
+                hideKeyboard()
             }
         }
 
@@ -126,5 +130,10 @@ class MainActivity : AppCompatActivity(), TodoAdapter.ItemClickListener {
 
     private fun hideProgress() {
         pbActivityMain.visibility = View.GONE
+    }
+
+    private fun hideKeyboard() {
+        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(etActivityMain.windowToken, 0);
     }
 }

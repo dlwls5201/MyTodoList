@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">TODO</string>
+    <string name="empty_message">Empty Todo</string>
+    <string name="delete">delete</string>
+</resources>

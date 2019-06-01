@@ -1,6 +1,7 @@
 package com.tistory.blackjin.mytodolist.ui
 
 import android.content.Context
+import android.graphics.drawable.shapes.Shape
 import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.InputMethodManager
@@ -13,11 +14,16 @@ import com.tistory.blackjin.mytodolist.room.Todo
 import com.tistory.blackjin.mytodolist.room.TodoDatabase
 import com.tistory.blackjin.mytodolist.utils.Dlog
 import com.tistory.blackjin.mytodolist.utils.timeFormat
+import io.reactivex.Maybe
+import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.toast
+import java.util.concurrent.TimeUnit
 
 
 class MainActivity : AppCompatActivity(), TodoAdapter.ItemClickListener {

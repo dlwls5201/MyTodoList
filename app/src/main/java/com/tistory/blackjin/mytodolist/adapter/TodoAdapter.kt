@@ -6,16 +6,20 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.tistory.blackjin.mytodolist.R
 import com.tistory.blackjin.mytodolist.room.Todo
+import com.tistory.blackjin.mytodolist.utils.TodoDiffCallback
+import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
 
 
 class TodoAdapter : RecyclerView.Adapter<TodoAdapter.TodoHolder>() {
 
-    private var todos: MutableList<Todo> = mutableListOf()
+    private var mTodos: MutableList<Todo> = mutableListOf()
 
-    private var listener: ItemClickListener? = null
+    private var mLlistener: ItemClickListener? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
         TodoHolder(
@@ -26,10 +30,10 @@ class TodoAdapter : RecyclerView.Adapter<TodoAdapter.TodoHolder>() {
             )
         )
 
-    override fun getItemCount() = todos.size
+    override fun getItemCount() = mTodos.size
 
     override fun onBindViewHolder(holder: TodoHolder, position: Int) {
-        todos[position].let {todo ->
+        mTodos[position].let { todo ->
             with(holder) {
 
                 tvTitle.text = todo.title
@@ -37,21 +41,27 @@ class TodoAdapter : RecyclerView.Adapter<TodoAdapter.TodoHolder>() {
                 checkBox.isChecked = todo.chk
 
                 checkBox.setOnClickListener {
-                    listener?.onItemClickCheckBox(todo)
+                    mLlistener?.onItemClickCheckBox(todo)
                 }
 
-                btnDelete.setOnClickListener { listener?.onItemClickDelete(todo) }
+                btnDelete.setOnClickListener { mLlistener?.onItemClickDelete(todo) }
             }
         }
     }
 
-    fun setItems(todos: MutableList<Todo>) {
-        this.todos = todos
-        notifyDataSetChanged()
+    fun updateListItems(newTodos: MutableList<Todo>) {
+
+        val diffCallback = TodoDiffCallback(mTodos, newTodos)
+        val diffResult = DiffUtil.calculateDiff(diffCallback)
+
+        mTodos.clear()
+        mTodos.addAll(newTodos)
+
+        diffResult.dispatchUpdatesTo(this)
     }
 
     fun setItemClickListener(listener: ItemClickListener?) {
-        this.listener = listener
+        this.mLlistener = listener
     }
 
     class TodoHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

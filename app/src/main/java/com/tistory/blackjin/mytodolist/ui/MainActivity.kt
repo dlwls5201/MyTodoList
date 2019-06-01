@@ -6,7 +6,6 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.tistory.blackjin.mytodolist.R
 import com.tistory.blackjin.mytodolist.adapter.TodoAdapter
 import com.tistory.blackjin.mytodolist.extensions.runOnIoScheduler
 import com.tistory.blackjin.mytodolist.operator.plusAssign
@@ -19,7 +18,7 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.toast
-import java.util.concurrent.TimeUnit
+
 
 class MainActivity : AppCompatActivity(), TodoAdapter.ItemClickListener {
 
@@ -30,6 +29,9 @@ class MainActivity : AppCompatActivity(), TodoAdapter.ItemClickListener {
     private val todoDao by lazy {
         TodoDatabase.getInstance(applicationContext).getTodoDao()
     }
+
+    private val imm by lazy {
+        getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager }
 
     private val compositeDisposable = CompositeDisposable()
 
@@ -66,7 +68,7 @@ class MainActivity : AppCompatActivity(), TodoAdapter.ItemClickListener {
             val title = etActivityMain.text.toString()
 
             if (title.isEmpty()) {
-                toast(getString(R.string.empty_title))
+                toast(getString(com.tistory.blackjin.mytodolist.R.string.empty_title))
             } else {
                 runOnIoScheduler {
                     todoDao.insert(
@@ -102,13 +104,13 @@ class MainActivity : AppCompatActivity(), TodoAdapter.ItemClickListener {
 
                 Dlog.d("$it")
 
-                if (it.toMutableList().isNullOrEmpty()) {
+                if (it.isNullOrEmpty()) {
                     showEmptyMessage()
                 } else {
                     hideEmptyMessage()
                 }
 
-                todoAdapter.setItems(it.toMutableList())
+                todoAdapter.updateListItems(it.toMutableList())
 
                 hideProgress()
 
@@ -118,7 +120,6 @@ class MainActivity : AppCompatActivity(), TodoAdapter.ItemClickListener {
     }
 
     private fun hideKeyboard() {
-        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(etActivityMain.windowToken, 0)
     }
 

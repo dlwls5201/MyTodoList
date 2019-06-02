@@ -5,7 +5,7 @@
 - Room
 - RecyclerView + DiffUtil.Callback
 
-참고 자료
+## 참고 자료
 
 [Room & RxJava](https://medium.com/androiddevelopers/room-rxjava-acb0cd4f3757)
 

@@ -8,8 +8,10 @@ import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.tistory.blackjin.mytodolist.adapter.TodoAdapter
+import com.tistory.blackjin.mytodolist.api.TodoapiImpl
 import com.tistory.blackjin.mytodolist.extensions.runOnIoScheduler
 import com.tistory.blackjin.mytodolist.operator.plusAssign
+import com.tistory.blackjin.mytodolist.repository.TodoRepository
 import com.tistory.blackjin.mytodolist.room.Todo
 import com.tistory.blackjin.mytodolist.room.TodoDatabase
 import com.tistory.blackjin.mytodolist.utils.Dlog
@@ -33,11 +35,12 @@ class MainActivity : AppCompatActivity(), TodoAdapter.ItemClickListener {
     }
 
     private val todoDao by lazy {
-        TodoDatabase.getInstance(applicationContext).getTodoDao()
+        TodoRepository(this@MainActivity).getApi()
     }
 
     private val imm by lazy {
-        getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager }
+        getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+    }
 
     private val compositeDisposable = CompositeDisposable()
 
@@ -98,7 +101,7 @@ class MainActivity : AppCompatActivity(), TodoAdapter.ItemClickListener {
         }
     }
 
-    private fun loadData() {
+    fun loadData() {
 
         showProgress()
 

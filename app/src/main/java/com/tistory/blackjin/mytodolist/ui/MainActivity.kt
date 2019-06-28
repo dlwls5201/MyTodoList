@@ -1,32 +1,23 @@
 package com.tistory.blackjin.mytodolist.ui
 
 import android.content.Context
-import android.graphics.drawable.shapes.Shape
 import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.tistory.blackjin.mytodolist.adapter.TodoAdapter
-import com.tistory.blackjin.mytodolist.api.TodoapiImpl
 import com.tistory.blackjin.mytodolist.extensions.runOnIoScheduler
 import com.tistory.blackjin.mytodolist.operator.plusAssign
-import com.tistory.blackjin.mytodolist.repository.TodoRepository
 import com.tistory.blackjin.mytodolist.room.Todo
 import com.tistory.blackjin.mytodolist.room.TodoDatabase
 import com.tistory.blackjin.mytodolist.utils.Dlog
 import com.tistory.blackjin.mytodolist.utils.timeFormat
-import io.reactivex.Maybe
-import io.reactivex.Observable
-import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.toast
-import java.util.concurrent.TimeUnit
-
 
 class MainActivity : AppCompatActivity(), TodoAdapter.ItemClickListener {
 
@@ -35,7 +26,7 @@ class MainActivity : AppCompatActivity(), TodoAdapter.ItemClickListener {
     }
 
     private val todoDao by lazy {
-        TodoRepository(this@MainActivity).getApi()
+        TodoDatabase.getInstance(this).getTodoDao()
     }
 
     private val imm by lazy {
@@ -60,14 +51,17 @@ class MainActivity : AppCompatActivity(), TodoAdapter.ItemClickListener {
     }
 
     override fun onItemClickCheckBox(todo: Todo) {
-
         val tempTodo = todo.copy(chk = !todo.chk)
 
-        runOnIoScheduler { todoDao.update(tempTodo) }
+        compositeDisposable += runOnIoScheduler {
+            todoDao.update(tempTodo)
+        }
     }
 
     override fun onItemClickDelete(todo: Todo) {
-        runOnIoScheduler { todoDao.delete(todo) }
+        compositeDisposable += runOnIoScheduler {
+            todoDao.delete(todo)
+        }
     }
 
     private fun initButton() {
@@ -79,7 +73,8 @@ class MainActivity : AppCompatActivity(), TodoAdapter.ItemClickListener {
             if (title.isEmpty()) {
                 toast(getString(com.tistory.blackjin.mytodolist.R.string.empty_title))
             } else {
-                runOnIoScheduler {
+
+                compositeDisposable += runOnIoScheduler {
                     todoDao.insert(
                         Todo(title = title, time = timeFormat(), chk = false)
                     )
@@ -101,7 +96,7 @@ class MainActivity : AppCompatActivity(), TodoAdapter.ItemClickListener {
         }
     }
 
-    fun loadData() {
+    private fun loadData() {
 
         showProgress()
 

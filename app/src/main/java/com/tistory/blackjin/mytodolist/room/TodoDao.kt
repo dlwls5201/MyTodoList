@@ -1,7 +1,6 @@
 package com.tistory.blackjin.mytodolist.room
 
 import androidx.room.*
-import io.reactivex.Completable
 import io.reactivex.Flowable
 
 /**

@@ -6,20 +6,18 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.tistory.blackjin.mytodolist.R
 import com.tistory.blackjin.mytodolist.adapter.TodoAdapter
-import com.tistory.blackjin.mytodolist.extensions.runOnIoScheduler
-import com.tistory.blackjin.mytodolist.operator.plusAssign
 import com.tistory.blackjin.mytodolist.room.Todo
 import com.tistory.blackjin.mytodolist.room.TodoDatabase
-import com.tistory.blackjin.mytodolist.utils.Dlog
+import com.tistory.blackjin.mytodolist.utils.schedulers.SchedulerProvider
 import com.tistory.blackjin.mytodolist.utils.timeFormat
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.toast
 
-class MainActivity : AppCompatActivity(), TodoAdapter.ItemClickListener {
+class MainActivity : AppCompatActivity(), MainContract.View, TodoAdapter.ItemClickListener {
+
 
     private val todoAdapter by lazy {
         TodoAdapter().apply { setItemClickListener(this@MainActivity) }
@@ -33,16 +31,24 @@ class MainActivity : AppCompatActivity(), TodoAdapter.ItemClickListener {
         getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
     }
 
+    private lateinit var presenter: MainContract.Presenter
+
     private val compositeDisposable = CompositeDisposable()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(com.tistory.blackjin.mytodolist.R.layout.activity_main)
+        setContentView(R.layout.activity_main)
+
+        presenter = MainPresenter(this,
+            todoDao,
+            compositeDisposable,
+            SchedulerProvider.getInstance()
+        )
 
         initButton()
         initRecyclerView()
 
-        loadData()
+        presenter.loadTodos()
     }
 
     override fun onDestroy() {
@@ -51,95 +57,59 @@ class MainActivity : AppCompatActivity(), TodoAdapter.ItemClickListener {
     }
 
     override fun onItemClickCheckBox(todo: Todo) {
-        val tempTodo = todo.copy(chk = !todo.chk)
-
-        compositeDisposable += runOnIoScheduler {
-            todoDao.update(tempTodo)
-        }
+        presenter.changeTodoChk(todo)
     }
 
     override fun onItemClickDelete(todo: Todo) {
-        compositeDisposable += runOnIoScheduler {
-            todoDao.delete(todo)
-        }
+        presenter.deleteTodo(todo)
     }
 
     private fun initButton() {
-
         fabActivityMain.setOnClickListener {
-
-            val title = etActivityMain.text.toString()
-
-            if (title.isEmpty()) {
-                toast(getString(com.tistory.blackjin.mytodolist.R.string.empty_title))
-            } else {
-
-                compositeDisposable += runOnIoScheduler {
-                    todoDao.insert(
-                        Todo(title = title, time = timeFormat(), chk = false)
-                    )
-                }
-
-                etActivityMain.text = null
-                hideKeyboard()
-            }
+            presenter.insertTodo()
         }
-
     }
 
     private fun initRecyclerView() {
-
         with(rvActivityMain) {
-
             layoutManager = LinearLayoutManager(this@MainActivity)
             adapter = todoAdapter
         }
     }
 
-    private fun loadData() {
+    override fun getEditTitle() = etActivityMain.text.toString()
 
-        showProgress()
+    override fun getTime() = timeFormat()
 
-        compositeDisposable += todoDao.getAllTodo()
-            //.delay(3000, TimeUnit.MILLISECONDS)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-
-                Dlog.d("$it")
-
-                if (it.isNullOrEmpty()) {
-                    showEmptyMessage()
-                } else {
-                    hideEmptyMessage()
-                }
-
-                todoAdapter.updateListItems(it.toMutableList())
-
-                hideProgress()
-
-            }) {
-                Dlog.e(it.message)
-            }
+    override fun setEditTitleNull() {
+        etActivityMain.text = null
     }
 
-    private fun hideKeyboard() {
+    override fun showEditTitleNotNullMessage() {
+        toast(getString(R.string.empty_title))
+    }
+
+    override fun setTodos(items: List<Todo>) {
+        todoAdapter.updateListItems(items.toMutableList())
+    }
+
+    override fun hideKeyboard() {
         imm.hideSoftInputFromWindow(etActivityMain.windowToken, 0)
     }
 
-    private fun showEmptyMessage() {
+    override fun showEmptyMessage() {
         tvActivityMainEmpty.visibility = View.VISIBLE
     }
 
-    private fun hideEmptyMessage() {
+    override fun hideEmptyMessage() {
         tvActivityMainEmpty.visibility = View.GONE
     }
 
-    private fun showProgress() {
+    override fun showProgress() {
         pbActivityMain.visibility = View.VISIBLE
     }
 
-    private fun hideProgress() {
+    override fun hideProgress() {
         pbActivityMain.visibility = View.GONE
     }
 }

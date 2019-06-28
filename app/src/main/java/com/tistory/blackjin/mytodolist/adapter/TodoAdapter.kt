@@ -11,8 +11,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.tistory.blackjin.mytodolist.R
 import com.tistory.blackjin.mytodolist.room.Todo
 import com.tistory.blackjin.mytodolist.utils.TodoDiffCallback
-import io.reactivex.Observable
-import io.reactivex.android.schedulers.AndroidSchedulers
 
 
 class TodoAdapter : RecyclerView.Adapter<TodoAdapter.TodoHolder>() {
